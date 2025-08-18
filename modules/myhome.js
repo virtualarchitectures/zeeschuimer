@@ -18,6 +18,8 @@ zeeschuimer.register_module(
       return [];
     }
 
+    //TODO: Remove duplicate results
+
     return data["SearchResults"];
   }
 );
