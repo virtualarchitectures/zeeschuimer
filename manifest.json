@@ -41,6 +41,8 @@
       "inc/he.js",
       "js/lib.js",
       "js/zs-background.js",
+      "modules/myhome.js",
+      "modules/daft.js",
       "modules/tiktok.js",
       "modules/tiktok-comments.js",
       "modules/instagram.js",
@@ -54,8 +56,7 @@
       "modules/threads.js",
       "modules/pinterest.js",
       "modules/rednote.js",
-      "modules/rednote-comments.js",
-      "modules/myhome.js"
+      "modules/rednote-comments.js"
     ]
   }
 }
