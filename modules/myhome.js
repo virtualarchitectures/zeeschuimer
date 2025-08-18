@@ -2,6 +2,11 @@ zeeschuimer.register_module(
   "MyHome",
   "myhome.ie",
   function (response, source_platform_url, source_url) {
+    // Ignore service worker requests
+    if (source_platform_url.includes("ngsw-worker.js")) {
+      return [];
+    }
+
     let domain = source_platform_url
       .split("/")[2]
       .toLowerCase()
