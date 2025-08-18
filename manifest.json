@@ -1,5 +1,4 @@
 {
-
   "description": "Collect data while browsing social media platforms and upload it for analysis later",
   "manifest_version": 2,
   "name": "Zeeschuimer",
@@ -23,7 +22,14 @@
   },
 
   "permissions": [
-    "webRequest", "webRequestBlocking", "webNavigation", "<all_urls>", "storage", "downloads", "activeTab", "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "webNavigation",
+    "<all_urls>",
+    "storage",
+    "downloads",
+    "activeTab",
+    "tabs",
     "unlimitedStorage"
   ],
 
@@ -48,7 +54,8 @@
       "modules/threads.js",
       "modules/pinterest.js",
       "modules/rednote.js",
-      "modules/rednote-comments.js"
+      "modules/rednote-comments.js",
+      "modules/myhome.js"
     ]
   }
 }
