@@ -12,13 +12,13 @@
   },
 
   "icons": {
-    "48": "images/zeeschuimer-48.png",
-    "96": "images/zeeschuimer-96.png"
+    "48": "images/ds-logo-48.png",
+    "96": "images/ds-logo-96.png"
   },
 
   "browser_action": {
-    "default_icon": "images/zeeschuimer-64.png",
-    "default_title": "Zeeschuimer Status"
+    "default_icon": "images/ds-logo-64.png",
+    "default_title": "DS-Property-schuimer Status"
   },
 
   "permissions": [
@@ -42,7 +42,7 @@
       "js/lib.js",
       "js/zs-background.js",
       "modules/daft.js",
-      "modules/myhome.js",
+      "modules/myhome.js"
     ]
   }
 }
