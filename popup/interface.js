@@ -32,26 +32,31 @@ window.isSecureContext && window.addEventListener('beforeunload', evt => {
  * @param prepend_icon  Font awesome icon ID to prepend to content
  * @returns {*}
  */
-function createElement(tag, attributes={}, content=undefined, prepend_icon=undefined) {
-    let element = document.createElement(tag);
-    for(let attribute in attributes) {
-        element.setAttribute(attribute, attributes[attribute]);
-    }
-    if (content && typeof(content) === 'object' && 'tagName' in content) {
-        element.appendChild(content);
-    } else if(content !== undefined) {
-        element.textContent = content;
-    }
+function createElement(
+  tag,
+  attributes = {},
+  content = undefined,
+  prepend_icon = undefined
+) {
+  let element = document.createElement(tag);
+  for (let attribute in attributes) {
+    element.setAttribute(attribute, attributes[attribute]);
+  }
+  if (content && typeof content === "object" && "tagName" in content) {
+    element.appendChild(content);
+  } else if (content !== undefined) {
+    element.textContent = content;
+  }
 
-    if(prepend_icon) {
-        const icon_element = document.createElement('i');
-        icon_element.classList.add('fa')
-        icon_element.classList.add('fa-' + prepend_icon);
-        element.textContent = ' ' + element.textContent;
-        element.prepend(icon_element);
-    }
+  if (prepend_icon) {
+    const icon_element = document.createElement("i");
+    icon_element.classList.add("fa");
+    icon_element.classList.add("fa-" + prepend_icon);
+    element.textContent = " " + element.textContent;
+    element.prepend(icon_element);
+  }
 
-    return element;
+  return element;
 }
 
 /**
@@ -63,14 +68,14 @@ function createElement(tag, attributes={}, content=undefined, prepend_icon=undef
  * @returns {Promise<*>}
  */
 async function get_4cat_url(e) {
-    let url = await background.browser.storage.local.get(['4cat-url']);
-    if (url['4cat-url']) {
-        url = url['4cat-url'];
-    } else {
-        url = '';
-    }
+  let url = await background.browser.storage.local.get(["4cat-url"]);
+  if (url["4cat-url"]) {
+    url = url["4cat-url"];
+  } else {
+    url = "";
+  }
 
-    return url;
+  return url;
 }
 
 /**
@@ -82,30 +87,30 @@ async function get_4cat_url(e) {
  * @returns {Promise<void>}
  */
 async function set_4cat_url(e) {
-    if(e !== true && !e.target.matches('#fourcat-url')) {
-        return;
-    }
+  if (e !== true && !e.target.matches("#fourcat-url")) {
+    return;
+  }
 
-    let url;
-    if(e !== true) {
-        url = document.querySelector('#fourcat-url').value;
-        if(url.length > 0) {
-            if (url.indexOf('://') === -1) {
-                url = 'http://' + url;
-            }
-            url = url.split('/').slice(0, 3).join('/');
-        }
-        await background.browser.storage.local.set({'4cat-url': url});
+  let url;
+  if (e !== true) {
+    url = document.querySelector("#fourcat-url").value;
+    if (url.length > 0) {
+      if (url.indexOf("://") === -1) {
+        url = "http://" + url;
+      }
+      url = url.split("/").slice(0, 3).join("/");
+    }
+    await background.browser.storage.local.set({ "4cat-url": url });
+  } else {
+    url = await background.browser.storage.local.get(["4cat-url"]);
+    if (url["4cat-url"]) {
+      url = url["4cat-url"];
     } else {
-        url = await background.browser.storage.local.get(['4cat-url']);
-        if(url['4cat-url']) {
-            url = url['4cat-url'];
-        } else {
-            url = '';
-        }
+      url = "";
     }
+  }
 
-    have_4cat = (url && url.length > 0);
+  have_4cat = url && url.length > 0;
 }
 
 /**
@@ -116,29 +121,36 @@ async function set_4cat_url(e) {
  * enable or disable buttons accordingly.
  */
 function activate_buttons() {
-    document.querySelectorAll("td button").forEach(button => {
-        let current = button.disabled;
-        let items = parseInt(button.parentNode.parentNode.querySelector('.num-items').innerText);
-        let new_status = current;
+  document.querySelectorAll("td button").forEach((button) => {
+    let current = button.disabled;
+    let items = parseInt(
+      button.parentNode.parentNode.querySelector(".num-items").innerText
+    );
+    let new_status = current;
 
-        if(button.classList.contains('upload-to-4cat') && !is_uploading) {
-            new_status = !(items > 0 && have_4cat);
-            if(new_status && !have_4cat) {
-                button.classList.add('tooltippable');
-                button.setAttribute('title', 'Configure a 4CAT URL to enable uploading to 4CAT');
-            } else {
-                button.classList.remove('tooltippable');
-                button.setAttribute('title', '');
-            }
+    if (button.classList.contains("upload-to-4cat") && !is_uploading) {
+      new_status = !(items > 0 && have_4cat);
+      if (new_status && !have_4cat) {
+        button.classList.add("tooltippable");
+        button.setAttribute(
+          "title",
+          "Configure a 4CAT URL to enable uploading to 4CAT"
+        );
+      } else {
+        button.classList.remove("tooltippable");
+        button.setAttribute("title", "");
+      }
+    } else if (
+      button.classList.contains("download-ndjson") ||
+      button.classList.contains("reset")
+    ) {
+      new_status = !(items > 0);
+    }
 
-        } else if(button.classList.contains('download-ndjson') || button.classList.contains('reset')) {
-            new_status = !(items > 0);
-        }
-
-        if(new_status !== current) {
-            button.disabled = new_status;
-        }
-    });
+    if (new_status !== current) {
+      button.disabled = new_status;
+    }
+  });
 }
 
 /**
@@ -150,23 +162,30 @@ function activate_buttons() {
  * @returns {Promise<void>}
  */
 async function toggle_listening(e) {
-    let platform = e.target.getAttribute('name');
-    let now = await background.browser.storage.local.get([platform]);
-    let current = !!parseInt(now[platform]);
-    let updated = current ? 0 : 1;
-    e.target.parentNode.parentNode.parentNode.parentNode.setAttribute('data-enabled', updated);
+  let platform = e.target.getAttribute("name");
+  let now = await background.browser.storage.local.get([platform]);
+  let current = !!parseInt(now[platform]);
+  let updated = current ? 0 : 1;
+  e.target.parentNode.parentNode.parentNode.parentNode.setAttribute(
+    "data-enabled",
+    updated
+  );
 
-    await background.browser.storage.local.set({[platform]: String(updated)});
+  await background.browser.storage.local.set({ [platform]: String(updated) });
 }
-
 
 /**
  * Update favicon depending on whether capture is enabled
  */
 function update_icon() {
-    const any_enabled = Array.from(document.querySelectorAll('.toggle-switch input')).filter(item => item.checked);
-    const path = any_enabled.length > 0 ? '/images/zeeschuimer-icon-active.png' : '/images/zeeschuimer-icon-inactive.png';
-    document.querySelector('link[rel~=icon]').setAttribute('href', path);
+  const any_enabled = Array.from(
+    document.querySelectorAll(".toggle-switch input")
+  ).filter((item) => item.checked);
+  const path =
+    any_enabled.length > 0
+      ? "/images/ds-icon-active.png"
+      : "/images/ds-icon-inactive.png";
+  document.querySelector("link[rel~=icon]").setAttribute("href", path);
 }
 
 /**
@@ -179,90 +198,201 @@ function update_icon() {
  * @returns {Promise<void>}
  */
 async function get_stats() {
-    let response = [];
-    let platform_map = [];
-    Object.keys(background.zeeschuimer.modules).forEach(function(platform) { platform_map[platform] = background.zeeschuimer.modules[platform].name; });
-    for(let module in background.zeeschuimer.modules) {
-        response[module] = await background.db.items.where("source_platform").equals(module).count();
+  let response = [];
+  let platform_map = [];
+  Object.keys(background.zeeschuimer.modules).forEach(function (platform) {
+    platform_map[platform] = background.zeeschuimer.modules[platform].name;
+  });
+  for (let module in background.zeeschuimer.modules) {
+    response[module] = await background.db.items
+      .where("source_platform")
+      .equals(module)
+      .count();
+  }
+
+  for (let platform in response) {
+    let row_id = "stats-" + platform.replace(/[^a-zA-Z0-9]/g, "");
+    let new_num_items = parseInt(response[platform]);
+    if (!document.querySelector("#" + row_id)) {
+      let toggle_field = "zs-enabled-" + platform;
+      let enabled = await background.browser.storage.local.get([toggle_field]);
+      enabled =
+        enabled.hasOwnProperty(toggle_field) &&
+        !!parseInt(enabled[toggle_field]);
+      let row = createElement("tr", {
+        id: row_id,
+        "data-enabled": enabled ? "1" : "0",
+      });
+
+      // checkbox stuff
+      let checker = createElement("label", { for: toggle_field });
+      checker.appendChild(
+        createElement("input", {
+          id: toggle_field,
+          name: toggle_field,
+          type: "checkbox",
+        })
+      );
+      checker.appendChild(createElement("span", { class: "toggle" }));
+      if (enabled) {
+        checker.firstChild.setAttribute("checked", "checked");
+      }
+      checker.addEventListener("change", toggle_listening);
+
+      row.appendChild(
+        createElement(
+          "td",
+          { class: "platform-icon" },
+          createElement("img", {
+            src:
+              "/images/platform-icons/" +
+              platform.split(".")[0].split("-")[0] +
+              ".png",
+            alt: "",
+          })
+        )
+      );
+      row.appendChild(
+        createElement(
+          "td",
+          {},
+          createElement("div", { class: "toggle-switch" }, checker)
+        )
+      );
+      row.appendChild(
+        createElement(
+          "td",
+          {},
+          createElement(
+            "a",
+            {
+              href:
+                "https://" + background.zeeschuimer.modules[platform]["domain"],
+            },
+            platform_map[platform]
+          )
+        )
+      );
+      row.appendChild(
+        createElement(
+          "td",
+          { class: "num-items" },
+          new Intl.NumberFormat().format(response[platform])
+        )
+      );
+
+      let actions = createElement("td");
+      let clear_button = createElement(
+        "button",
+        { "data-platform": platform, class: "reset" },
+        "Delete"
+      );
+      let download_button = createElement(
+        "button",
+        {
+          "data-platform": platform,
+          class: "download-ndjson",
+        },
+        ".ndjson"
+      );
+      let fourcat_button = createElement(
+        "button",
+        {
+          "data-platform": platform,
+          class: "upload-to-4cat",
+        },
+        "to 4CAT"
+      );
+
+      actions.appendChild(clear_button);
+      actions.appendChild(download_button);
+      actions.appendChild(fourcat_button);
+
+      row.appendChild(actions);
+      document.querySelector("#item-table tbody").appendChild(row);
+    } else if (
+      new_num_items !==
+      parseInt(document.querySelector("#" + row_id + " .num-items").innerText)
+    ) {
+      document.querySelector("#" + row_id + " .num-items").innerText =
+        new Intl.NumberFormat().format(new_num_items);
     }
+  }
 
-    for (let platform in response) {
-        let row_id = "stats-" + platform.replace(/[^a-zA-Z0-9]/g, "");
-        let new_num_items = parseInt(response[platform]);
-        if(!document.querySelector("#" + row_id)) {
-            let toggle_field = 'zs-enabled-' + platform;
-            let enabled = await background.browser.storage.local.get([toggle_field])
-            enabled = enabled.hasOwnProperty(toggle_field) && !!parseInt(enabled[toggle_field]);
-            let row = createElement("tr", {"id": row_id, 'data-enabled': enabled ? '1' : '0'});
+  let uploads = await background.db.uploads.orderBy("id").reverse().limit(10);
+  let num_uploads = parseInt(
+    await background.db.uploads.orderBy("id").limit(10).count()
+  );
 
-            // checkbox stuff
-            let checker = createElement("label", {"for": toggle_field});
-            checker.appendChild(createElement('input', {"id": toggle_field, "name": toggle_field, "type": "checkbox"}))
-            checker.appendChild(createElement('span', {"class": "toggle"}));
-            if(enabled) { checker.firstChild.setAttribute('checked', 'checked'); }
-            checker.addEventListener('change', toggle_listening);
+  if (num_uploads > 0 && !document.querySelector("#clear-history")) {
+    document
+      .querySelector("#upload-table")
+      .parentNode.appendChild(
+        createElement("button", { id: "clear-history" }, "Clear history")
+      );
+  } else if (
+    num_uploads === 0 &&
+    !document.querySelector("#upload-table .empty-table-notice")
+  ) {
+    document
+      .querySelector("#upload-table tbody")
+      .appendChild(
+        createElement(
+          "tr",
+          { class: "empty-table-notice" },
+          createElement("td", { colspan: 4 }, "No datasets uploaded so far.")
+        )
+      );
+  }
 
-            row.appendChild(createElement("td", {'class': 'platform-icon'}, createElement('img', {'src': '/images/platform-icons/' + platform.split('.')[0].split('-')[0] + '.png', 'alt': ''})));
-            row.appendChild(createElement("td", {}, createElement('div', {'class': 'toggle-switch'}, checker)));
-            row.appendChild(createElement("td", {}, createElement('a', {'href': 'https://' + background.zeeschuimer.modules[platform]['domain']}, platform_map[platform])));
-            row.appendChild(createElement("td", {"class": "num-items"}, new Intl.NumberFormat().format(response[platform])));
-
-            let actions = createElement("td");
-            let clear_button = createElement("button", {"data-platform": platform, "class": "reset"}, "Delete");
-            let download_button = createElement("button", {
-                "data-platform": platform,
-                "class": "download-ndjson"
-            }, ".ndjson");
-            let fourcat_button = createElement("button", {
-                "data-platform": platform,
-                "class": "upload-to-4cat",
-            }, "to 4CAT");
-
-            actions.appendChild(clear_button);
-            actions.appendChild(download_button);
-            actions.appendChild(fourcat_button);
-
-            row.appendChild(actions);
-            document.querySelector("#item-table tbody").appendChild(row);
-        } else if(new_num_items !== parseInt(document.querySelector("#" + row_id + " .num-items").innerText)) {
-            document.querySelector("#" + row_id + " .num-items").innerText = new Intl.NumberFormat().format(new_num_items);
-        }
+  await uploads.each((upload) => {
+    let row_id = "upload-" + upload.id;
+    if (!document.querySelector("#" + row_id)) {
+      if (document.querySelector("#upload-table .empty-table-notice")) {
+        document.querySelector("#upload-table .empty-table-notice").remove();
+      }
+      let row = createElement("tr", { id: row_id });
+      row.appendChild(
+        createElement(
+          "td",
+          {},
+          background.zeeschuimer.modules[upload.platform]["name"]
+        )
+      );
+      row.appendChild(
+        createElement("td", {}, new Intl.NumberFormat().format(upload.items))
+      );
+      row.appendChild(
+        createElement(
+          "td",
+          {},
+          new Date(upload.timestamp).toLocaleString("en-us", {
+            weekday: "long",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        )
+      );
+      row.appendChild(
+        createElement(
+          "td",
+          {},
+          createElement(
+            "a",
+            { href: upload.url, target: "_blank" },
+            upload.url.split("/")[2]
+          )
+        )
+      );
+      document.querySelector("#upload-table tbody").append(row);
     }
+  });
 
-    let uploads = await background.db.uploads.orderBy("id").reverse().limit(10);
-    let num_uploads = parseInt(await background.db.uploads.orderBy("id").limit(10).count());
-
-    if(num_uploads > 0 && !document.querySelector('#clear-history')) {
-        document.querySelector('#upload-table').parentNode.appendChild(createElement('button', {id: 'clear-history'}, 'Clear history'));
-    } else if (num_uploads === 0 && !document.querySelector('#upload-table .empty-table-notice')) {
-        document.querySelector('#upload-table tbody').appendChild(createElement('tr', {class: 'empty-table-notice'},
-            createElement('td', {colspan: 4}, 'No datasets uploaded so far.')));
-    }
-
-    await uploads.each(upload => {
-        let row_id = "upload-" + upload.id;
-        if(!document.querySelector("#" + row_id)) {
-            if(document.querySelector('#upload-table .empty-table-notice')) {
-                document.querySelector('#upload-table .empty-table-notice').remove();
-            }
-            let row = createElement("tr", {"id": row_id});
-            row.appendChild(createElement("td", {}, background.zeeschuimer.modules[upload.platform]["name"]));
-            row.appendChild(createElement("td", {}, new Intl.NumberFormat().format(upload.items)));
-            row.appendChild(createElement("td", {}, (new Date(upload.timestamp)).toLocaleString('en-us', {
-                weekday: "long",
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-            })));
-            row.appendChild(createElement("td", {}, createElement("a", {"href": upload.url, "target": "_blank"}, upload.url.split("/")[2])));
-            document.querySelector("#upload-table tbody").append(row);
-        }
-    });
-
-    set_4cat_url(true);
-    activate_buttons();
-    update_icon();
-    init_tooltips();
+  set_4cat_url(true);
+  activate_buttons();
+  update_icon();
+  init_tooltips();
 }
 
 /**
@@ -276,248 +406,289 @@ async function get_stats() {
  * @returns {Promise<void>}
  */
 async function button_handler(event) {
-    let status = document.getElementById('upload-status');
+  let status = document.getElementById("upload-status");
 
-    if (event.target.matches('.reset')) {
-        let platform = event.target.getAttribute('data-platform');
-        await background.db.items.where("source_platform").equals(platform).delete();
+  if (event.target.matches(".reset")) {
+    let platform = event.target.getAttribute("data-platform");
+    await background.db.items
+      .where("source_platform")
+      .equals(platform)
+      .delete();
+  } else if (event.target.matches(".reset-all")) {
+    await background.db.items.clear();
+  } else if (event.target.matches(".download-ndjson")) {
+    let platform = event.target.getAttribute("data-platform");
+    let date = new Date();
+    event.target.classList.add("loading");
 
-    } else if (event.target.matches('.reset-all')) {
-        await background.db.items.clear();
+    //let blob = await download_blob(platform, 'zeeschuimer-export-' + platform + '-' + date.toISOString().split(".")[0].replace(/:/g, "") + '.ndjson');
+    let blob = await get_blob(platform);
+    let filename =
+      "zeeschuimer-export-" +
+      platform +
+      "-" +
+      date.toISOString().split(".")[0].replace(/:/g, "") +
+      ".ndjson";
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const downloadId = await browser.downloads.download({
+      url: window.URL.createObjectURL(blob),
+      filename: filename,
+      conflictAction: "uniquify",
+    });
+    downloadUrls.set(downloadId, downloadUrl);
 
-    } else if (event.target.matches('.download-ndjson')) {
-        let platform = event.target.getAttribute('data-platform');
-        let date = new Date();
-        event.target.classList.add('loading');
+    event.target.classList.remove("loading");
+  } else if (event.target.matches(".upload-to-4cat")) {
+    let platform = event.target.getAttribute("data-platform");
+    status.innerText = "Creating data file for uploading...";
+    is_uploading = true;
+    let blob = await get_blob(platform);
 
-        //let blob = await download_blob(platform, 'zeeschuimer-export-' + platform + '-' + date.toISOString().split(".")[0].replace(/:/g, "") + '.ndjson');
-        let blob = await get_blob(platform);
-        let filename = 'zeeschuimer-export-' + platform + '-' + date.toISOString().split(".")[0].replace(/:/g, "") + '.ndjson';
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const downloadId = await browser.downloads.download({
-            url: window.URL.createObjectURL(blob),
-            filename: filename,
-            conflictAction: 'uniquify'
-        });
-        downloadUrls.set(downloadId, downloadUrl);
+    document
+      .querySelectorAll(".upload-to-4cat")
+      .forEach((x) => x.setAttribute("disabled", true));
 
-        event.target.classList.remove('loading');
+    xhr = new XMLHttpRequest();
+    xhr.aborted = false;
+    let upload_url = await get_4cat_url();
 
-    } else if (event.target.matches('.upload-to-4cat')) {
-        let platform = event.target.getAttribute('data-platform');
-        status.innerText = 'Creating data file for uploading...';
-        is_uploading = true;
-        let blob = await get_blob(platform);
-
-        document.querySelectorAll('.upload-to-4cat').forEach(x => x.setAttribute('disabled', true));
-
-        xhr = new XMLHttpRequest();
-        xhr.aborted = false;
-        let upload_url = await get_4cat_url();
-
-        xhr.open("POST", upload_url + "/api/import-dataset/", true);
-        xhr.setRequestHeader("X-Zeeschuimer-Platform", platform)
-        xhr.onloadstart = function () {
-            status.innerText = 'Starting upload...';
-        }
-        xhr.upload.onprogress = function (event) {
-            let pct = event.total === 0 ? '???' : Math.round(event.loaded / event.total * 100);
-            status.innerHTML = '';
-            status.appendChild(createElement('p', {}, pct + '% uploaded'));
-            status.appendChild(createElement('button', {id: 'cancel-upload'}, 'Cancel upload'));
-        }
-        xhr.onreadystatechange = function() {
-            let response = xhr.responseText.replace(/\n/g, '');
-            if(xhr.readyState === xhr.DONE) {
-                if(xhr.status === 200) {
-                    status.innerText = 'File uploaded. Waiting for processing to finish.'
-                    if (xhr.responseURL.indexOf('/login/') >= 0) {
-                        is_uploading = false;
-                        status.innerText = 'You are not logged in to this 4CAT server! Open it in a separate tab, log in and try again.'
-                        return;
-                    }
-
-                    try {
-                        response = JSON.parse(response);
-                    } catch (e) {
-                        is_uploading = false;
-                        status.innerText = 'Error during upload: malformed response from 4CAT server.';
-                        return;
-                    }
-                    upload_poll.init(response);
-                } else if(xhr.status === 429) {
-                    status.innerText = '4CAT server refused upload, too soon after previous one. Try again in a minute.'
-                } else if(xhr.status === 403) {
-                    status.innerText = 'Could not log in to 4CAT server. Make sure to log in to 4CAT in this browser.';
-                } else if(xhr.status === 404 && xhr.responseText.indexOf('Unknown platform or source format') >= 0) {
-                    status.innerText = 'The 4CAT server does not accept ' + platform + ' datasets. The 4CAT ' +
-                        'administrator may need to enable the data source or upgrade 4CAT.';
-                } else if(xhr.status === 0) {
-                    if(!xhr.aborted) {
-                        status.innerText = 'Could not connect to 4CAT server. Is the URL correct?';
-                    }
-                } else {
-                    status.innerText = 'Error ' + xhr.status + ' ' + xhr.statusText + ' during upload. Is the URL correct?';
-                }
-
-                is_uploading = false;
-            }
-        }
-        xhr.send(blob);
-
-    } else if(event.target.matches('#clear-history')) {
-        await background.db.uploads.clear();
-        document.querySelector('#clear-history').remove();
-        document.querySelectorAll("#upload-table tbody tr").forEach(x => x.remove());
-
-    } else if(event.target.matches('#cancel-upload')) {
-        xhr.abort();
-        xhr.aborted = true;
-        status.innerHTML = '';
-
-    } else if(event.target.matches('#import-button')) {
-        if(!confirm('Importing data will remove all items currently stored. Are you sure?')) {
+    xhr.open("POST", upload_url + "/api/import-dataset/", true);
+    xhr.setRequestHeader("X-Zeeschuimer-Platform", platform);
+    xhr.onloadstart = function () {
+      status.innerText = "Starting upload...";
+    };
+    xhr.upload.onprogress = function (event) {
+      let pct =
+        event.total === 0
+          ? "???"
+          : Math.round((event.loaded / event.total) * 100);
+      status.innerHTML = "";
+      status.appendChild(createElement("p", {}, pct + "% uploaded"));
+      status.appendChild(
+        createElement("button", { id: "cancel-upload" }, "Cancel upload")
+      );
+    };
+    xhr.onreadystatechange = function () {
+      let response = xhr.responseText.replace(/\n/g, "");
+      if (xhr.readyState === xhr.DONE) {
+        if (xhr.status === 200) {
+          status.innerText = "File uploaded. Waiting for processing to finish.";
+          if (xhr.responseURL.indexOf("/login/") >= 0) {
+            is_uploading = false;
+            status.innerText =
+              "You are not logged in to this 4CAT server! Open it in a separate tab, log in and try again.";
             return;
-        }
+          }
 
-        await background.db.items.clear();
-
-        event.target.setAttribute('disabled', 'disabled');
-        let file = document.querySelector('#ndjson-file').files[0];
-        let reader = new FileReader();
-        reader.readAsText(file);
-        reader.addEventListener('load', async function (e) {
-            let imported_items = 0;
-            let skipped = 0;
-            let jsons = reader.result.split("\n");
-            for(let index in jsons) {
-                let raw_json = jsons[index];
-                if (!raw_json) {
-                    continue;
-                }
-
-                try {
-                    let imported = JSON.parse(raw_json);
-
-                    // is this original format or 4CAT-ified? in the latter case, convert back
-                    if ('__import_meta' in imported) {
-                        let reformatted_import = imported['__import_meta'];
-                        reformatted_import['data'] = {};
-                        for (const field in imported) {
-                            if(field === '__import_meta') {
-                                continue;
-                            }
-                            reformatted_import['data'][field] = imported[field];
-                        }
-                        imported = reformatted_import;
-                    }
-
-                    await background.db.items.add(imported);
-                    imported_items += 1;
-                } catch (e) {
-                    skipped += 1;
-                    console.log('Skipping invalid JSON string: (' + e + ') ' + raw_json);
-                }
-            }
-
-            if(skipped) {
-                alert('Imported ' + imported_items + ' item(s), ' + skipped + ' skipped.');
-            } else {
-                alert('Imported ' + imported_items + ' item(s).');
-            }
-        });
-
-        reader.addEventListener('loadend', function(e) {
-            event.target.removeAttribute('disabled');
-        });
-
-    } else if (event.target.matches('#toggle-advanced-mode')) {
-        let section = document.querySelector('#advanced-mode');
-        let is_hidden = section.getAttribute('aria-hidden') == 'true';
-        if(is_hidden) {
-            section.setAttribute('aria-hidden', 'false');
-            event.target.innerText = 'Hide advanced options';
+          try {
+            response = JSON.parse(response);
+          } catch (e) {
+            is_uploading = false;
+            status.innerText =
+              "Error during upload: malformed response from 4CAT server.";
+            return;
+          }
+          upload_poll.init(response);
+        } else if (xhr.status === 429) {
+          status.innerText =
+            "4CAT server refused upload, too soon after previous one. Try again in a minute.";
+        } else if (xhr.status === 403) {
+          status.innerText =
+            "Could not log in to 4CAT server. Make sure to log in to 4CAT in this browser.";
+        } else if (
+          xhr.status === 404 &&
+          xhr.responseText.indexOf("Unknown platform or source format") >= 0
+        ) {
+          status.innerText =
+            "The 4CAT server does not accept " +
+            platform +
+            " datasets. The 4CAT " +
+            "administrator may need to enable the data source or upgrade 4CAT.";
+        } else if (xhr.status === 0) {
+          if (!xhr.aborted) {
+            status.innerText =
+              "Could not connect to 4CAT server. Is the URL correct?";
+          }
         } else {
-            section.setAttribute('aria-hidden', 'true');
-            event.target.innerText = 'Show advanced options';
+          status.innerText =
+            "Error " +
+            xhr.status +
+            " " +
+            xhr.statusText +
+            " during upload. Is the URL correct?";
         }
 
-        event.stopPropagation();
-        return false;
+        is_uploading = false;
+      }
+    };
+    xhr.send(blob);
+  } else if (event.target.matches("#clear-history")) {
+    await background.db.uploads.clear();
+    document.querySelector("#clear-history").remove();
+    document
+      .querySelectorAll("#upload-table tbody tr")
+      .forEach((x) => x.remove());
+  } else if (event.target.matches("#cancel-upload")) {
+    xhr.abort();
+    xhr.aborted = true;
+    status.innerHTML = "";
+  } else if (event.target.matches("#import-button")) {
+    if (
+      !confirm(
+        "Importing data will remove all items currently stored. Are you sure?"
+      )
+    ) {
+      return;
     }
 
-    get_stats();
+    await background.db.items.clear();
+
+    event.target.setAttribute("disabled", "disabled");
+    let file = document.querySelector("#ndjson-file").files[0];
+    let reader = new FileReader();
+    reader.readAsText(file);
+    reader.addEventListener("load", async function (e) {
+      let imported_items = 0;
+      let skipped = 0;
+      let jsons = reader.result.split("\n");
+      for (let index in jsons) {
+        let raw_json = jsons[index];
+        if (!raw_json) {
+          continue;
+        }
+
+        try {
+          let imported = JSON.parse(raw_json);
+
+          // is this original format or 4CAT-ified? in the latter case, convert back
+          if ("__import_meta" in imported) {
+            let reformatted_import = imported["__import_meta"];
+            reformatted_import["data"] = {};
+            for (const field in imported) {
+              if (field === "__import_meta") {
+                continue;
+              }
+              reformatted_import["data"][field] = imported[field];
+            }
+            imported = reformatted_import;
+          }
+
+          await background.db.items.add(imported);
+          imported_items += 1;
+        } catch (e) {
+          skipped += 1;
+          console.log("Skipping invalid JSON string: (" + e + ") " + raw_json);
+        }
+      }
+
+      if (skipped) {
+        alert(
+          "Imported " + imported_items + " item(s), " + skipped + " skipped."
+        );
+      } else {
+        alert("Imported " + imported_items + " item(s).");
+      }
+    });
+
+    reader.addEventListener("loadend", function (e) {
+      event.target.removeAttribute("disabled");
+    });
+  } else if (event.target.matches("#toggle-advanced-mode")) {
+    let section = document.querySelector("#advanced-mode");
+    let is_hidden = section.getAttribute("aria-hidden") == "true";
+    if (is_hidden) {
+      section.setAttribute("aria-hidden", "false");
+      event.target.innerText = "Hide advanced options";
+    } else {
+      section.setAttribute("aria-hidden", "true");
+      event.target.innerText = "Show advanced options";
+    }
+
+    event.stopPropagation();
+    return false;
+  }
+
+  get_stats();
 }
 
 /**
  * Upload status poller
  */
 const upload_poll = {
-    /**
-     * Start polling for upload status
-     *
-     * Connects to the 4CAT API at the configured URL to check status of a
-     * dataset that has been uploaded and is now being processed.
-     *
-     * @param response
-     * @returns {Promise<void>}
-     */
-    init: async function(response) {
-        let upload_url = await get_4cat_url();
-        let poll_url = upload_url + '/api/check-query/?key=' + response["key"];
-        let status = document.getElementById('upload-status');
-        let xhr = new XMLHttpRequest();
-        xhr.open("GET", poll_url, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === xhr.DONE) {
-                return;
-            }
+  /**
+   * Start polling for upload status
+   *
+   * Connects to the 4CAT API at the configured URL to check status of a
+   * dataset that has been uploaded and is now being processed.
+   *
+   * @param response
+   * @returns {Promise<void>}
+   */
+  init: async function (response) {
+    let upload_url = await get_4cat_url();
+    let poll_url = upload_url + "/api/check-query/?key=" + response["key"];
+    let status = document.getElementById("upload-status");
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", poll_url, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === xhr.DONE) {
+        return;
+      }
 
-            if (xhr.status !== 200) {
-                status.innerText = 'Error while checking for upload status.'
-                return;
-            }
+      if (xhr.status !== 200) {
+        status.innerText = "Error while checking for upload status.";
+        return;
+      }
 
-            let json_response = xhr.responseText.replace(/\n/g, '');
-            let progress;
-            try {
-                progress = JSON.parse(json_response);
-            } catch (SyntaxError) {
-                status.innerText = 'Error during upload: malformed response from 4CAT server.';
-                return;
-            }
+      let json_response = xhr.responseText.replace(/\n/g, "");
+      let progress;
+      try {
+        progress = JSON.parse(json_response);
+      } catch (SyntaxError) {
+        status.innerText =
+          "Error during upload: malformed response from 4CAT server.";
+        return;
+      }
 
-            if (!progress["done"]) {
-                status.innerText = 'Processing upload: ' + progress["status"];
-                setTimeout(() => upload_poll.init(response), 1000);
-            } else {
-                status.innerHTML = '';
-                status.appendChild(createElement("span", {},"Upload completed! "));
-                status.appendChild(createElement("a", {"href": progress["url"], "target": "_blank"}, "View dataset."));
-                upload_poll.add_dataset(progress);
+      if (!progress["done"]) {
+        status.innerText = "Processing upload: " + progress["status"];
+        setTimeout(() => upload_poll.init(response), 1000);
+      } else {
+        status.innerHTML = "";
+        status.appendChild(createElement("span", {}, "Upload completed! "));
+        status.appendChild(
+          createElement(
+            "a",
+            { href: progress["url"], target: "_blank" },
+            "View dataset."
+          )
+        );
+        upload_poll.add_dataset(progress);
 
-                document.querySelectorAll('.upload-to-4cat').forEach(x => x.removeAttribute('disabled'))
-                is_uploading = false;
-            }
-        }
-        xhr.send();
-    },
+        document
+          .querySelectorAll(".upload-to-4cat")
+          .forEach((x) => x.removeAttribute("disabled"));
+        is_uploading = false;
+      }
+    };
+    xhr.send();
+  },
 
-    /**
-     * Add dataset to Zeeschuimer history
-     *
-     * @param progress
-     * @returns {Promise<void>}
-     */
-    add_dataset: async function(progress) {
-        await background.db.uploads.add({
-            timestamp: (new Date()).getTime(),
-            url: progress["url"],
-            platform: progress["datasource"],
-            items: progress["rows"]
-        });
-    }
-}
+  /**
+   * Add dataset to Zeeschuimer history
+   *
+   * @param progress
+   * @returns {Promise<void>}
+   */
+  add_dataset: async function (progress) {
+    await background.db.uploads.add({
+      timestamp: new Date().getTime(),
+      url: progress["url"],
+      platform: progress["datasource"],
+      items: progress["rows"],
+    });
+  },
+};
 
 /**
  * Get a NDJON dump of items
@@ -529,13 +700,13 @@ const upload_poll = {
  * @returns {Promise<Blob>}
  */
 async function get_blob(platform) {
-    let ndjson = [];
+  let ndjson = [];
 
-    await iterate_items(platform, function(item) {
-        ndjson.push(JSON.stringify(item) + "\n");
-    });
+  await iterate_items(platform, function (item) {
+    ndjson.push(JSON.stringify(item) + "\n");
+  });
 
-    return new Blob(ndjson, {type: 'application/x-ndjson'});
+  return new Blob(ndjson, { type: "application/x-ndjson" });
 }
 
 /**
@@ -551,18 +722,18 @@ async function get_blob(platform) {
  * @returns {Promise<void>}
  */
 async function download_blob(platform, filename) {
-    if (!fileStream) {
-        fileStream = streamSaver.createWriteStream(filename)
-        writer = fileStream.getWriter()
-    }
+  if (!fileStream) {
+    fileStream = streamSaver.createWriteStream(filename);
+    writer = fileStream.getWriter();
+  }
 
-    await iterate_items(platform, function(item) {
-        writer.write(encode(JSON.stringify(item) + "\n"));
-    });
+  await iterate_items(platform, function (item) {
+    writer.write(encode(JSON.stringify(item) + "\n"));
+  });
 
-    await writer.close();
-    writer = undefined;
-    fileStream = undefined;
+  await writer.close();
+  writer = undefined;
+  fileStream = undefined;
 }
 
 /**
@@ -577,33 +748,41 @@ async function download_blob(platform, filename) {
  * @returns {Promise<void>}
  */
 async function iterate_items(platform, callback) {
-    let previous;
-    while(true) {
-        let items;
-        // we paginate here in this somewhat roundabout way because firefox
-        // crashes if we query everything in one go for large datasets
-        if(!previous) {
-            items = await background.db.items
-                .orderBy('id')
-                .filter(item => item.source_platform === platform)
-                .limit(500).toArray();
-        } else {
-            items = await background.db.items
-                .where('id')
-                .aboveOrEqual(previous.id)
-                .filter(fastForward(previous, 'id', item => item.source_platform === platform))
-                .limit(500).toArray();
-        }
-
-        if(!items.length) {
-            break;
-        }
-
-        items.forEach(item => {
-            callback(item);
-            previous = item;
-        })
+  let previous;
+  while (true) {
+    let items;
+    // we paginate here in this somewhat roundabout way because firefox
+    // crashes if we query everything in one go for large datasets
+    if (!previous) {
+      items = await background.db.items
+        .orderBy("id")
+        .filter((item) => item.source_platform === platform)
+        .limit(500)
+        .toArray();
+    } else {
+      items = await background.db.items
+        .where("id")
+        .aboveOrEqual(previous.id)
+        .filter(
+          fastForward(
+            previous,
+            "id",
+            (item) => item.source_platform === platform
+          )
+        )
+        .limit(500)
+        .toArray();
     }
+
+    if (!items.length) {
+      break;
+    }
+
+    items.forEach((item) => {
+      callback(item);
+      previous = item;
+    });
+  }
 }
 
 /**
@@ -612,13 +791,13 @@ async function iterate_items(platform, callback) {
  * @param delta object representing the changes that caused this event to fire.
  */
 function downloadListener(delta) {
-    if(delta.state && delta.state.current === "complete") {
-        const url = downloadUrls.get(delta.id);
-        if(url) {
-            window.URL.revokeObjectURL(url);
-            downloadUrls.delete(delta.id);
-        }
+  if (delta.state && delta.state.current === "complete") {
+    const url = downloadUrls.get(delta.id);
+    if (url) {
+      window.URL.revokeObjectURL(url);
+      downloadUrls.delete(delta.id);
     }
+  }
 }
 
 /**
@@ -635,43 +814,31 @@ function downloadListener(delta) {
  * @returns {(function(*): (*|boolean))|*}
  */
 function fastForward(lastRow, idProp, otherCriteria) {
-    let fastForwardComplete = false;
-    return item => {
-        if (fastForwardComplete) return otherCriteria(item);
-        if (item[idProp] === lastRow[idProp]) {
-            fastForwardComplete = true;
-        }
-        return false;
-    };
+  let fastForwardComplete = false;
+  return (item) => {
+    if (fastForwardComplete) return otherCriteria(item);
+    if (item[idProp] === lastRow[idProp]) {
+      fastForwardComplete = true;
+    }
+    return false;
+  };
 }
 
 /**
  * Init!
  */
-document.addEventListener('DOMContentLoaded', async function () {
-    get_stats();
-    setInterval(get_stats, 1000);
+document.addEventListener("DOMContentLoaded", async function () {
+  get_stats();
+  setInterval(get_stats, 1000);
 
-    document.addEventListener('click', button_handler);
-    document.addEventListener('keyup', set_4cat_url);
-    document.addEventListener('change', set_4cat_url);
+  document.addEventListener("click", button_handler);
+  document.addEventListener("keyup", set_4cat_url);
+  document.addEventListener("change", set_4cat_url);
 
-    const version_container = document.querySelector('.version a');
-    const current_version = version_container.innerText;
-    const known_version = await background.browser.storage.local.get('zs-version');
-    if(!known_version || current_version !== known_version['zs-version']) {
-        const version_alert = createElement('span', {'class': 'popup new-version'}, 'Zeeschuimer has been updated to a new version! You can read the release notes via this link.');
-        const ok_button = createElement('button', {'class': 'close-popup'}, 'OK');
-        ok_button.addEventListener('click', async function(e) {
-            await background.browser.storage.local.set({'zs-version': current_version});
-            document.querySelector('.new-version').remove();
-        });
-        version_alert.appendChild(ok_button);
-        document.querySelector('header').appendChild(version_alert);
-    }
+  const fourcat_url = await background.browser.storage.local.get("4cat-url");
+  document.querySelector("#fourcat-url").value = fourcat_url["4cat-url"]
+    ? fourcat_url["4cat-url"]
+    : "";
 
-    const fourcat_url = await background.browser.storage.local.get('4cat-url');
-    document.querySelector('#fourcat-url').value = fourcat_url['4cat-url'] ? fourcat_url['4cat-url'] : '';
-
-    browser.downloads.onChanged.addListener(downloadListener);
+  browser.downloads.onChanged.addListener(downloadListener);
 });
