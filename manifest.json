@@ -50,7 +50,8 @@
       "modules/collegecribs.js",
       "modules/digs.js",
       "modules/hostingpower.js",
-      "modules/property.js"
+      "modules/property.js",
+      "modules/vrbo.js"
     ]
   }
 }
