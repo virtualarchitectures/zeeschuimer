@@ -47,10 +47,10 @@
       "js/zs-background.js",
       "modules/daft.js",
       "modules/myhome.js",
+      "modules/property.js",
       "modules/collegecribs.js",
       "modules/digs.js",
       "modules/hostingpower.js",
-      "modules/property.js",
       "modules/vrbo.js"
     ]
   }

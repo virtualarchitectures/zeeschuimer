@@ -241,7 +241,7 @@ async function get_stats() {
       row.appendChild(actions);
       document.querySelector("#item-table tbody").appendChild(row);
 
-      if (platform === "myhome.ie") {
+      if (["property.ie", "digs.ie"].includes(platform)) {
         const spacer = createElement("tr", { class: "module-spacer" });
         spacer.appendChild(createElement("td", { colspan: "5" }));
         document.querySelector("#item-table tbody").appendChild(spacer);
