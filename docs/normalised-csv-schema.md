@@ -80,9 +80,9 @@ Query parameter stripping is applied selectively based on the role of the query 
 | daft.ie | `?signature=<hmac>` | HMAC credential required by CDN | **Retained** — full signed URL stored | ✓ |
 | myhome.ie | None | — | No change | ✓ |
 | property.ie | `?signature=<hmac>` | HMAC credential required by CDN | **Retained** — full signed URL stored | ✓ |
-| digs.ie | No image captured | — | Always blank | — |
+| digs.ie | None | — | No change; relative path prefixed with `https://www.digs.ie` | ✓ |
 | collegecribs.ie | None | Signature embedded in path, not query string | No change | ✓ |
-| hostingpower.ie | No image captured | — | Always blank | — |
+| hostingpower.ie | None | — | No change | ✓ |
 | vrbo.com | `?impolicy=resizecrop&ra=fit&rw=455&rh=455` | Resize hint only, not access control | **Stripped** — base URL is fully accessible | ✓ |
 
 All five platforms that capture images produce URLs that an automated scraper can use directly. The `?signature=` parameters on daft.ie and property.ie are HMAC signatures over the image transform path and do not appear to be time-limited, so the captured URLs remain valid after the collection session.
@@ -198,13 +198,14 @@ All five platforms that capture images produce URLs that an automated scraper ca
 | `bathrooms` | — | Not captured |
 | `agent` | `data.posted_by` | Name of the person posting the listing |
 | `date_posted` | `data.date_posted` | DD/MM/YYYY → ISO date string |
-| `image_url` | — | Not captured by the module; always blank |
+| `image_url` | `data.image_url` | `/photos/display/[hash].webp` (medium size); `https://www.digs.ie` prepended to form absolute URL — directly downloadable. Blank for listings with no photo. |
 
 **Caveats:**
 - `price` contains no currency symbol — it is a plain decimal string. Currency is assumed EUR.
 - `"Sun to Fri"` is a 6-day weekly cycle common for student digs; it is mapped to `per_week`.
 - `property_type` describes the **host's property** (the dwelling), not the rented space. All digs listings are room rentals regardless of this value.
 - Data is minimal compared to other platforms; most optional fields will be blank.
+- Images are WebP format. Two sizes exist on the listing page (`display` medium, `main` full-size); the medium `display` variant is captured from the search card.
 
 ---
 
@@ -258,7 +259,7 @@ All five platforms that capture images produce URLs that an automated scraper ca
 | `property_type` | — | Always `room` |
 | `bedrooms` | — | Not applicable; room-level listings |
 | `bathrooms` | `data.bathroom_type` | `1` if a bathroom type is specified, `0` if null |
-| `image_url` | — | Not captured by the module; always blank |
+| `image_url` | `data.image_url` | AWS S3 URL (`hosting-pictures.s3.eu-west-1.amazonaws.com`); no query parameters — directly downloadable. Blank for listings with no photo. |
 
 **Caveats:**
 - All listings are weekly room rentals; `price_period` is hardcoded to `per_week`.

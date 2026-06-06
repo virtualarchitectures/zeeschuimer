@@ -283,7 +283,7 @@ function normalize_digs(data) {
     agent: data.posted_by ?? null,
     date_posted,
     description: null,
-    image_url: null,
+    image_url: data.image_url ?? null,
   };
 }
 
@@ -358,7 +358,7 @@ function normalize_hostingpower(data) {
     agent: null,
     date_posted: null,
     description: null,
-    image_url: null,
+    image_url: data.image_url ?? null,
   };
 }
 

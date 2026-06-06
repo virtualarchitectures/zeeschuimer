@@ -71,6 +71,11 @@ zeeschuimer.register_module(
       const type_el = card.querySelector("span.pull-right.badge");
       const property_type = type_el ? type_el.textContent.trim() : null;
 
+      const imgEl = card.querySelector("img[src^='/photos/']");
+      const image_url = imgEl
+        ? "https://www.digs.ie" + imgEl.getAttribute("src")
+        : null;
+
       items.push({
         id: id,
         url: url,
@@ -81,6 +86,7 @@ zeeschuimer.register_module(
         property_type: property_type,
         date_posted: date_posted,
         posted_by: posted_by,
+        image_url: image_url,
       });
     });
 
