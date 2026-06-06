@@ -300,6 +300,34 @@ All five platforms that capture images produce URLs that an automated scraper ca
 
 ---
 
+### airbnb.ie
+
+| Canonical field | Source path | Notes |
+|-----------------|-------------|-------|
+| `listing_id` | `data.id` | Decoded numeric string (see caveat) |
+| `url` | `"https://www.airbnb.ie/rooms/" + data.id` | |
+| `listing_type` | — | Always `vacation_rental` |
+| `address` | `data.name` | Listing title used as location proxy; Airbnb does not expose street addresses in search results |
+| `latitude` | `data.latitude` | From `demandStayListing.location.coordinate.latitude` |
+| `longitude` | `data.longitude` | From `demandStayListing.location.coordinate.longitude` |
+| `price_raw` | `data.price_primary` | Formatted nightly price e.g. `"€75"` |
+| `price_amount` | parsed from `data.price_primary` | |
+| `price_currency` | detected from symbol in `price_raw` | `€` → `EUR`, `$` → `USD`; defaults to `EUR` |
+| `price_period` | — | Always `per_night` |
+| `property_type_raw` | — | Not available in search results; always blank |
+| `property_type` | — | Always `other` (see caveat) |
+| `bedrooms` | — | Not available in search results; always blank |
+| `bathrooms` | — | Not available in search results; always blank |
+| `image_url` | `strip_image_query_params(data.image_url)` | Airbnb CDN (`a0.muscache.com`) with resize hints stripped; base URL is directly downloadable |
+
+**Caveats:**
+- The raw listing ID is a base64-encoded GraphQL global ID: `StayListing:12345678`. The module decodes it to the numeric part (`12345678`), which is used in the listing URL.
+- Bedrooms, bathrooms, property type, host name, date posted, and BER rating are **not returned** in search results by Airbnb's `StaysSearch` API. They are only available from individual listing detail requests, which the extension does not initiate.
+- Data is captured from Airbnb's internal GraphQL API (`POST /api/v3/StaysSearch/{hash}`). Airbnb changes this schema without notice; field paths may need adjustment after observing actual responses via the raw NDJSON export.
+- `image_url` query parameters (`?im_w=720` etc.) are CDN resize hints with no access-control role and are stripped. The base URL serves the image directly.
+
+---
+
 ## Fields Not Included in the Normalised Schema
 
 The following fields exist in the raw NDJSON but are excluded from the normalised CSV. They remain accessible via the `.ndjson` export.
@@ -313,3 +341,4 @@ The following fields exist in the raw NDJSON but are excluded from the normalise
 | collegecribs.ie | `bedrooms[]` (full array), `photos` (full array), `distance`, `promotion.*` | Full room and photo arrays in raw NDJSON; promo not comparative |
 | hostingpower.ie | `transport[]`, `guest_count`, `room_label`, `rating` | Transport/rating not consistently populated |
 | vrbo.com | `analyticsEvents`, `mediaSection` (full), `summarySections`, `priceSection` (full), `compareSection` | Analytics payload; full media and price breakdown in raw NDJSON |
+| airbnb.ie | `avg_rating`, `reviews_count`, `is_superhost`, `price_secondary` | Rating and review data not in schema; secondary (total) price in raw NDJSON |

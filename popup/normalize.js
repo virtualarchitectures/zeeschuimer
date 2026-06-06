@@ -362,6 +362,42 @@ function normalize_hostingpower(data) {
   };
 }
 
+function normalize_airbnb(data) {
+  const id = data.id ?? null;
+  const url = id ? "https://www.airbnb.ie/rooms/" + id : null;
+  const price_raw = data.price_primary ?? null;
+
+  let price_currency = "EUR";
+  if (price_raw) {
+    if (price_raw.includes("$")) price_currency = "USD";
+    else if (price_raw.includes("£")) price_currency = "GBP";
+  }
+
+  return {
+    listing_id: id,
+    url,
+    listing_type: "vacation_rental",
+    address: data.name ?? null,
+    latitude: data.latitude ?? null,
+    longitude: data.longitude ?? null,
+    price_raw,
+    price_amount: parse_price_amount(price_raw),
+    price_currency,
+    price_period: "per_night",
+    property_type_raw: null,
+    property_type: "other",
+    bedrooms: null,
+    bathrooms: null,
+    furnished: null,
+    floor_area_m2: null,
+    ber_rating: null,
+    agent: null,
+    date_posted: null,
+    description: null,
+    image_url: strip_image_query_params(data.image_url),
+  };
+}
+
 function normalize_vrbo(data) {
   // Walk displayMessages to find the LEAD (current/discounted) price
   let price_raw = null;
@@ -419,6 +455,7 @@ const NORMALIZERS = {
   "collegecribs.ie": normalize_collegecribs,
   "hostingpower.ie": normalize_hostingpower,
   "vrbo.com": normalize_vrbo,
+  "airbnb.ie": normalize_airbnb,
 };
 
 /**

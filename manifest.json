@@ -51,7 +51,8 @@
       "modules/collegecribs.js",
       "modules/digs.js",
       "modules/hostingpower.js",
-      "modules/vrbo.js"
+      "modules/vrbo.js",
+      "modules/airbnb.js"
     ]
   }
 }
