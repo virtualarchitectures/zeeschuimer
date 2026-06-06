@@ -1,5 +1,5 @@
 zeeschuimer.register_module(
-  "HostingPower",
+  "HostingPower.ie",
   "hostingpower.ie",
   function (response, source_platform_url, source_url) {
     let domain = source_platform_url

@@ -1,5 +1,5 @@
 zeeschuimer.register_module(
-  "Airbnb",
+  "Airbnb.ie",
   "airbnb.ie",
   function (response, source_platform_url, source_url) {
     let domain = source_platform_url

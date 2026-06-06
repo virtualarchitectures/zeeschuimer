@@ -1,5 +1,5 @@
 zeeschuimer.register_module(
-  "MyHome",
+  "MyHome.ie",
   "myhome.ie",
   function (response, source_platform_url, source_url) {
     // Ignore service worker requests

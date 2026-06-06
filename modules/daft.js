@@ -1,5 +1,5 @@
 zeeschuimer.register_module(
-  "Daft",
+  "Daft.ie",
   "daft.ie",
   function (response, source_platform_url, source_url) {
     let domain = source_platform_url
