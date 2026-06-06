@@ -323,6 +323,7 @@ All five platforms that capture images produce URLs that an automated scraper ca
 **Caveats:**
 - The raw listing ID is a base64-encoded GraphQL global ID: `StayListing:12345678`. The module decodes it to the numeric part (`12345678`), which is used in the listing URL.
 - Bedrooms, bathrooms, property type, host name, date posted, and BER rating are **not returned** in search results by Airbnb's `StaysSearch` API. They are only available from individual listing detail requests, which the extension does not initiate.
+- Coordinates are **deliberately obfuscated** by Airbnb for host privacy. The API returns the same fuzzed location shown on the map: offset by 0–150 m (0–450 ft) from the true address. Listings in the same building are anonymised individually and may appear scattered across that radius. Coordinates are reliable at neighbourhood level only.
 - Data is captured from Airbnb's internal GraphQL API (`POST /api/v3/StaysSearch/{hash}`). Airbnb changes this schema without notice; field paths may need adjustment after observing actual responses via the raw NDJSON export.
 - `image_url` query parameters (`?im_w=720` etc.) are CDN resize hints with no access-control role and are stripped. The base URL serves the image directly.
 
