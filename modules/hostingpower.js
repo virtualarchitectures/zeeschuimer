@@ -1,5 +1,5 @@
 zeeschuimer.register_module(
-  "HostingPower",
+  "HostingPower.ie",
   "hostingpower.ie",
   function (response, source_platform_url, source_url) {
     let domain = source_platform_url
@@ -113,6 +113,9 @@ zeeschuimer.register_module(
       const guestIcon = card.querySelector("div.room-icon-wrap i.fa-user[title]");
       const guest_count = guestIcon ? guestIcon.getAttribute("title") : null;
 
+      const imgEl = card.querySelector("img[src*='hosting-pictures.s3']");
+      const image_url = imgEl ? imgEl.getAttribute("src") : null;
+
       items.push({
         id,
         url,
@@ -125,6 +128,7 @@ zeeschuimer.register_module(
         rating,
         transport,
         guest_count,
+        image_url,
       });
     });
 

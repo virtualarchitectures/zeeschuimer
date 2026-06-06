@@ -40,6 +40,26 @@ It is always best practice to refresh a page after you toggle collection on for 
 
 If you find you you are getting incompatible data from different parts of the same website, try organising your captures by activating/deactiating collection between different parts of the site, and exporting data before moving on.
 
+## Output Formats
+
+The extension offers two export formats with different trade-offs.
+
+### NDJSON
+
+NDJSON (newline-delimited JSON) is the primary archival format. Each line is a self-contained JSON object containing:
+
+- The **complete raw data** exactly as the platform delivered it — all fields, no transformations.
+- **Capture metadata**: `source_platform`, `source_platform_url`, `source_url`, `timestamp_collected`, `user_agent`, and `nav_index`. These record when and how each item was collected.
+- An internal `id` used by the extension for deduplication.
+
+NDJSON files can be **loaded back into the extension** to resume or extend a collection session. Because no data is discarded, NDJSON is the right choice for archiving and for any analysis that requires fields not present in the CSV outputs.
+
+### CSV
+
+The CSV export uses a fixed 22-column canonical schema that is consistent across all platforms, making it straightforward to stack and compare datasets from different sites. Fields are renamed and transformed into a common vocabulary (e.g. every platform's price becomes `price_amount` with a separate `price_period`). Some platform-specific detail that does not fit the shared schema is dropped; it remains accessible in the NDJSON. See [`docs/normalised-csv-schema.md`](docs/normalised-csv-schema.md) for a full description of every column and per-platform mapping.
+
+CSV files cannot be reloaded into the extension.
+
 ## Limitations
 
 Due to technical limitations, it may not be possible to collect all items from all 'views' for each supported platform. Data capture may break or change based on platform changes. Always cross-reference captured data with what you are seeing in your browser.

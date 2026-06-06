@@ -1,5 +1,5 @@
 zeeschuimer.register_module(
-  "CollegeCribs",
+  "CollegeCribs.ie",
   "collegecribs.ie",
   function (response, source_platform_url, source_url) {
     let domain = source_platform_url
@@ -33,39 +33,7 @@ zeeschuimer.register_module(
         return [];
       }
 
-      return [...(data.regular || []), ...(data.in_spotlight || [])].map(
-        (item) => {
-          const bedrooms = (item.bedrooms || []).map((b) => ({
-            room_type: b.category
-              ? b.category.name + (b.ensuite ? ", ensuite" : "")
-              : null,
-            price: b.price != null ? "€" + b.price : null,
-            period: b.price_type ? b.price_type.name : null,
-          }));
-
-          return {
-            id: item.ref_number,
-            ref_number: item.ref_number,
-            url: item.slug
-              ? "https://www.collegecribs.ie/listings/" + item.slug
-              : null,
-            title: item.name || null,
-            address: item.address ? item.address.full_string : null,
-            latitude: item.address ? item.address.latitude : null,
-            longitude: item.address ? item.address.longitude : null,
-            distance:
-              item.distance != null ? item.distance + "km to centre" : null,
-            property_type: item.accomodation_type
-              ? item.accomodation_type.name
-              : null,
-            is_premium: item.promotion
-              ? !!item.promotion.premium_active
-              : false,
-            updated: item.updated_at || null,
-            bedrooms,
-          };
-        }
-      );
+      return [...(data.regular || []), ...(data.in_spotlight || [])];
     }
 
     // Handle SSR HTML responses (direct page loads)

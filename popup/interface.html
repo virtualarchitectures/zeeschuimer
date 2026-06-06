@@ -125,7 +125,7 @@
       padding: 0.25em;
       background: var(--neutral-contrast);
       color: var(--neutral);
-      background-image: url("../images/ds-logo.png");
+      background-image: url("../images/ds-icon-300.png");
       background-repeat: no-repeat;
       background-position-x: 0;
       background-position-y: 0;
@@ -321,7 +321,7 @@
       content: "";
       height: 1.1em;
       width: 1.1em;
-      background-color: var(--neutral-contrast);
+      background-color: var(--accent);
       border-radius: 5px;
       transition: all 0.2s;
       position: absolute;
@@ -347,7 +347,7 @@
     .toggle-switch input:checked + .toggle:before {
       transform: translateX(1.7em);
       right: 10%;
-      background-color: var(--accent);
+      background-color: var(--neutral-contrast);
     }
 
     .toggle-switch input:checked + .toggle:after {
@@ -366,6 +366,10 @@
 
     *[data-enabled="1"] .platform-icon img {
       filter: grayscale(0) contrast(1);
+    }
+
+    *[data-enabled="0"] .toggle-switch {
+      opacity: 0.6;
     }
 
     button.loading,
@@ -392,7 +396,7 @@
       }
     }
   </style>
-  <link rel="shortcut icon" href="/images/ds-logo-96.png" />
+  <link rel="shortcut icon" href="/images/ds-icon-96.png" />
 </head>
 <body>
   <article>
@@ -444,6 +448,7 @@
     </nav>
   </footer>
   <script type="text/javascript" src="tooltips.js"></script>
+  <script type="text/javascript" src="normalize.js"></script>
   <script type="text/javascript" src="csv-export.js"></script>
   <script type="text/javascript" src="interface.js"></script>
 </body>
