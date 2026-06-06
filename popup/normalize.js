@@ -33,6 +33,7 @@ const NORMALIZED_FIELDS = [
   "agent",
   "date_posted",
   "description",
+  "image_url",
 ];
 
 /**
@@ -107,6 +108,28 @@ function normalize_property_type(raw) {
   return "other";
 }
 
+/**
+ * Strip query parameters from an image URL.
+ * Only applied where the query string is a processing hint with no role in
+ * access control (currently vrbo.com: ?impolicy=resizecrop&...).
+ * Platforms that use ?signature= HMAC credentials (daft, property.ie) retain
+ * their full URL so the image remains downloadable.
+ * Returns null for falsy input; returns the original string if URL parsing fails.
+ *
+ * @param {string|null} url
+ * @returns {string|null}
+ */
+function strip_image_query_params(url) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 // ── Per-platform normalisers ──────────────────────────────────────────────────
 
 function normalize_daft(data) {
@@ -152,6 +175,7 @@ function normalize_daft(data) {
     agent: data.seller?.name ?? null,
     date_posted: data.publishDate ? new Date(data.publishDate).toISOString() : null,
     description: null,
+    image_url: data.media?.images?.[0]?.size720x480 ?? null,
   };
 }
 
@@ -190,6 +214,7 @@ function normalize_myhome(data) {
     agent: data.GroupName ?? null,
     date_posted: data.ActivatedOn ?? null,
     description: null,
+    image_url: data.MainPhoto ?? null,
   };
 }
 
@@ -220,6 +245,7 @@ function normalize_property_ie(data) {
     agent: data.agent ?? null,
     date_posted: null,
     description: data.description ? background.strip_tags(data.description) : null,
+    image_url: data.image_url ?? null,
   };
 }
 
@@ -257,6 +283,7 @@ function normalize_digs(data) {
     agent: data.posted_by ?? null,
     date_posted,
     description: null,
+    image_url: null,
   };
 }
 
@@ -303,6 +330,7 @@ function normalize_collegecribs(data) {
     agent: null,
     date_posted: data.published_at ?? null,
     description: data.description ? background.strip_tags(data.description) : null,
+    image_url: data.photos?.[0]?.medium?.normal ?? null,
   };
 }
 
@@ -330,6 +358,7 @@ function normalize_hostingpower(data) {
     agent: null,
     date_posted: null,
     description: null,
+    image_url: null,
   };
 }
 
@@ -376,6 +405,7 @@ function normalize_vrbo(data) {
     agent: null,
     date_posted: null,
     description: data.headingSection?.heading ?? null,
+    image_url: strip_image_query_params(data.mediaSection?.gallery?.media?.[0]?.media?.url),
   };
 }
 

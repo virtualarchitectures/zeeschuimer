@@ -1,6 +1,6 @@
 # Normalised CSV Schema
 
-The `.csv` export for each platform uses a fixed 21-column schema so outputs from different platforms can be stacked and compared directly. This document describes each canonical field, how it is sourced from each platform, and any rules or caveats that apply.
+The `.csv` export for each platform uses a fixed 22-column schema so outputs from different platforms can be stacked and compared directly. This document describes each canonical field, how it is sourced from each platform, and any rules or caveats that apply.
 
 ---
 
@@ -29,6 +29,7 @@ The `.csv` export for each platform uses a fixed 21-column schema so outputs fro
 | 19 | `agent` | string | Estate agent or landlord name |
 | 20 | `date_posted` | string | ISO 8601 date the listing was first published |
 | 21 | `description` | string | Listing description text (HTML stripped) |
+| 22 | `image_url` | string | URL of the primary listing image, query parameters removed |
 
 ---
 
@@ -70,6 +71,24 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 
 ---
 
+## Image URL Handling
+
+Query parameter stripping is applied selectively based on the role of the query string for each platform:
+
+| Platform | Query parameters | Role | Treatment | Downloadable? |
+|----------|-----------------|------|-----------|---------------|
+| daft.ie | `?signature=<hmac>` | HMAC credential required by CDN | **Retained** — full signed URL stored | ✓ |
+| myhome.ie | None | — | No change | ✓ |
+| property.ie | `?signature=<hmac>` | HMAC credential required by CDN | **Retained** — full signed URL stored | ✓ |
+| digs.ie | No image captured | — | Always blank | — |
+| collegecribs.ie | None | Signature embedded in path, not query string | No change | ✓ |
+| hostingpower.ie | No image captured | — | Always blank | — |
+| vrbo.com | `?impolicy=resizecrop&ra=fit&rw=455&rh=455` | Resize hint only, not access control | **Stripped** — base URL is fully accessible | ✓ |
+
+All five platforms that capture images produce URLs that an automated scraper can use directly. The `?signature=` parameters on daft.ie and property.ie are HMAC signatures over the image transform path and do not appear to be time-limited, so the captured URLs remain valid after the collection session.
+
+---
+
 ## Per-Platform Field Mapping
 
 ### daft.ie
@@ -92,6 +111,7 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `ber_rating` | `data.ber.rating` | |
 | `agent` | `data.seller.name` | |
 | `date_posted` | `data.publishDate` | Unix milliseconds → ISO 8601 |
+| `image_url` | `data.media.images[0].size720x480` | 720×480 px JPEG; daft watermark baked in; full signed URL retained — directly downloadable |
 
 **Caveats:**
 - `numBedrooms` and `numBathrooms` are human-readable strings, not integers. The first digit sequence is extracted.
@@ -120,6 +140,7 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `ber_rating` | `data.BerRating` | |
 | `agent` | `data.GroupName` | Estate agency group name |
 | `date_posted` | `data.ActivatedOn` | ISO 8601 string with timezone offset |
+| `image_url` | `data.MainPhoto` | Large variant (`_l.jpg`); no query parameters — directly downloadable. `MainPhotoWeb` (`_m.jpg`) is smaller and not used. |
 
 **Caveats:**
 - The API response also contains a `Location` object with `lat`/`lon` fields, but these are **always 0** and must not be used. Real coordinates come from `BrochureMap`.
@@ -148,12 +169,14 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `ber_rating` | `data.ber_rating` | |
 | `agent` | `data.agent` | Null if not shown on listing card |
 | `description` | `data.description` | Truncated search-result excerpt |
+| `image_url` | `data.image_url` | 340×255 px with property.ie watermark; only size available from HTML scraping; full signed URL retained — directly downloadable |
 
 **Caveats:**
 - `price` has many formats: `"€350,000"`, `"€2,500  monthly"`, `"€69,200  yearly (€5,767 per month)"`, `"Rent Negotiable"`, `"Price on Application"`. The parser extracts the **first** numeric token, so `"€69,200 yearly"` yields `69200` (the annual figure, not the monthly one). `"Rent Negotiable"` yields blank.
 - No geolocation data is captured from search results pages.
 - New homes listings may have a bedroom range (`bedrooms` holds the minimum; `bedrooms_max` exists in the raw data but is not included in the normalised schema).
 - Data is parsed from server-rendered HTML rather than an API, so field availability depends on what the listing card displays.
+- `image_url` is null for some listings where no thumbnail is shown on the search results card.
 
 ---
 
@@ -175,6 +198,7 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `bathrooms` | — | Not captured |
 | `agent` | `data.posted_by` | Name of the person posting the listing |
 | `date_posted` | `data.date_posted` | DD/MM/YYYY → ISO date string |
+| `image_url` | — | Not captured by the module; always blank |
 
 **Caveats:**
 - `price` contains no currency symbol — it is a plain decimal string. Currency is assumed EUR.
@@ -205,12 +229,14 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `furnished` | `data.furnished` | Boolean, stored as string `"true"` / `"false"` |
 | `date_posted` | `data.published_at` | ISO 8601 timestamp |
 | `description` | `data.description` | HTML stripped |
+| `image_url` | `data.photos[0].medium.normal` | `photos[0]` is always the `medium` size key (main photo); subsequent photos use `thumb`. URL used as-is — directly downloadable |
 
 **Caveats:**
 - Prices are stored in **integer cents** (e.g. `22500` = €225.00). Division by 100 is applied before output.
 - A listing may have multiple bedroom types at different prices (e.g. single and double rooms). The **cheapest available bedroom** is used as the representative price. Both `price_raw` and `price_period` reflect that bedroom's values.
 - `address.latitude` and `address.longitude` are sometimes `0` (indicating missing data), not a location. Zero values are treated as absent.
 - `accomodation_type` uses snake_case values such as `"rooms_to_rent_in_a_family_house"` — these are preserved in `property_type_raw` for reference.
+- The photo URL is a Rails Active Storage redirect; the final destination image URL is resolved at request time.
 
 ---
 
@@ -232,6 +258,7 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `property_type` | — | Always `room` |
 | `bedrooms` | — | Not applicable; room-level listings |
 | `bathrooms` | `data.bathroom_type` | `1` if a bathroom type is specified, `0` if null |
+| `image_url` | — | Not captured by the module; always blank |
 
 **Caveats:**
 - All listings are weekly room rentals; `price_period` is hardcoded to `per_week`.
@@ -260,6 +287,7 @@ Matching is case-insensitive and applied to the raw `property_type_raw` string. 
 | `bedrooms` | parsed from `headingSection.messages[0].text` | Regex: `(\d+) bedroom` |
 | `bathrooms` | parsed from `headingSection.messages[0].text` | Regex: `(\d+)+? bathroom` — `2+` treated as `2` |
 | `description` | `data.headingSection.heading` | The listing title |
+| `image_url` | `data.mediaSection.gallery.media[0].media.url` | Resize hint (`?impolicy=resizecrop&ra=fit&rw=455&rh=455`) stripped; base URL serves full-resolution image — directly downloadable |
 
 **Caveats:**
 - Data comes from a **GraphQL API response** (`@defer` streamed NDJSON). The full response is stored as-is; the normaliser navigates the nested structure at export time.
@@ -278,9 +306,9 @@ The following fields exist in the raw NDJSON but are excluded from the normalise
 | Platform | Excluded fields | Reason |
 |----------|----------------|--------|
 | All | `source_platform_url`, `source_url`, `timestamp_collected`, `last_updated`, `user_agent`, `nav_index` | Capture metadata rather than listing data |
-| daft.ie | `seller.*` (full object), `media.images`, `sections`, `saleType`, `ber.epi`, `pageBranding.*`, `stampDutyValue`, `pricePerSqM` | Detail beyond comparative scope |
-| myhome.ie | `Negotiator.*`, `Photos`, `OpenViewings`, `TravelTimes`, `CustomData`, `GroupLogoUrl` | Detail beyond comparative scope |
-| property.ie | `bedrooms_max`, `image_url` | Range bedrooms not in schema; images not comparative data |
-| collegecribs.ie | `bedrooms[]` (full array), `photos`, `distance`, `promotion.*` | Full room array in raw NDJSON; images/promo not comparative |
+| daft.ie | `seller.*` (full object), `media.images` (full array), `sections`, `saleType`, `ber.epi`, `pageBranding.*`, `stampDutyValue`, `pricePerSqM` | Detail beyond comparative scope; full signed image array in raw NDJSON |
+| myhome.ie | `Negotiator.*`, `Photos` (full array), `OpenViewings`, `TravelTimes`, `CustomData`, `GroupLogoUrl` | Detail beyond comparative scope |
+| property.ie | `bedrooms_max` | Range bedrooms not in schema |
+| collegecribs.ie | `bedrooms[]` (full array), `photos` (full array), `distance`, `promotion.*` | Full room and photo arrays in raw NDJSON; promo not comparative |
 | hostingpower.ie | `transport[]`, `guest_count`, `room_label`, `rating` | Transport/rating not consistently populated |
-| vrbo.com | `analyticsEvents`, `mediaSection`, `summarySections`, `priceSection` (full), `compareSection` | Analytics payload; media; full price breakdown |
+| vrbo.com | `analyticsEvents`, `mediaSection` (full), `summarySections`, `priceSection` (full), `compareSection` | Analytics payload; full media and price breakdown in raw NDJSON |
