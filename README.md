@@ -12,11 +12,14 @@ locally collect and parse the data that platforms send to your browser as you us
 
 Currently, it supports the following platforms:
 
-- [Daft](https://www.daft.ie/)
-- [MyHome](https://www.myhome.ie/)
-- [College Cribs](https://www.collegecribs.ie/)
-- [Digs](https://www.digs.ie/)
-- [Hosting Power](https://www.hostingpower.ie/)
+- [Daft.ie](https://www.daft.ie/)
+- [MyHome.ie](https://www.myhome.ie/)
+- [Property.ie](https://www.property.ie/)
+- [CollegeCribs.ie](https://www.collegecribs.ie/)
+- [Digs.ie](https://www.digs.ie/)
+- [Airbnb.ie](https://www.airbnb.ie/)
+- [HostingPower.ie](https://www.hostingpower.ie/)
+- [VRBO.com](https://www.vrbo.com/)
 
 ## Installation
 
