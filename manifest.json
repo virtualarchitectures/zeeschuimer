@@ -50,9 +50,9 @@
       "modules/property.js",
       "modules/collegecribs.js",
       "modules/digs.js",
+      "modules/airbnb.js",
       "modules/hostingpower.js",
-      "modules/vrbo.js",
-      "modules/airbnb.js"
+      "modules/vrbo.js"
     ]
   }
 }
