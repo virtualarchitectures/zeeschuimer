@@ -42,9 +42,9 @@ If you find you you are getting incompatible data from different parts of the sa
 
 ## Output Formats
 
-The extension offers two export formats with different trade-offs.
+The extension offers two export formats with different purposes.
 
-### NDJSON
+**NDJSON**
 
 NDJSON (newline-delimited JSON) is the primary archival format. Each line is a self-contained JSON object containing:
 
@@ -54,11 +54,11 @@ NDJSON (newline-delimited JSON) is the primary archival format. Each line is a s
 
 NDJSON files can be **loaded back into the extension** to resume or extend a collection session. Because no data is discarded, NDJSON is the right choice for archiving and for any analysis that requires fields not present in the CSV outputs.
 
-### CSV
+**CSV**
 
 The CSV export uses a fixed 22-column canonical schema that is consistent across all platforms, making it straightforward to stack and compare datasets from different sites. Fields are renamed and transformed into a common vocabulary (e.g. every platform's price becomes `price_amount` with a separate `price_period`). Some platform-specific detail that does not fit the shared schema is dropped; it remains accessible in the NDJSON. See [`docs/normalised-csv-schema.md`](docs/normalised-csv-schema.md) for a full description of every column and per-platform mapping.
 
-CSV files cannot be reloaded into the extension.
+NOTE: CSV files cannot be reloaded into the extension.
 
 ## Limitations
 
@@ -101,7 +101,7 @@ The Data Stories extension only records content that the site sends to the user'
 2. Run `./create-zip.sh` to build the release artifacts. The script patches the version string in the interface and produces `release/DS-Property-Percolator-v<version>.zip` and `.xpi`.
 3. Commit the changes.
 4. Tag the commit and push: `git tag v<version> && git push && git push --tags`.
-5. On GitHub, go to **Releases → Draft a new release**, select the tag, write release notes, and attach both files from the `release/` directory.
+5. On GitHub, go to **Releases → Draft a new release**, select the tag, write release notes, and attach the `.xpi` file from the `release/` directory.
 
 ## Credits & license
 
