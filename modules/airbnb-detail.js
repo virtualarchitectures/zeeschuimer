@@ -1,21 +1,3 @@
-// Prevents double-capture when both the SSR HTML branch and the hydration
-// StaysPdpSections XHR fire during the same page load. JS is single-threaded
-// so Map reads/writes here are race-condition-free across concurrent async
-// parse_request calls. TTL covers a full page load but allows re-capture on
-// genuine revisits after navigating away.
-const _captured = new Map();
-const _CAPTURE_TTL = 8000;
-
-function _tryAcquire(id) {
-  const now = Date.now();
-  for (const [k, v] of _captured) {
-    if (now - v > _CAPTURE_TTL) _captured.delete(k);
-  }
-  if (_captured.has(id)) return false;
-  _captured.set(id, now);
-  return true;
-}
-
 zeeschuimer.register_module(
   "Airbnb.ie (Detail)",
   "airbnb.ie",
@@ -100,10 +82,9 @@ zeeschuimer.register_module(
       };
     }
 
-    // --- API branch: StaysPdpSections (client-side navigation) ---
-    // Airbnb calls /api/v3/StaysPdpSections/{hash} during SPA navigation.
-    // Guard: require the tab URL to be on a /rooms/ page so prefetch calls
-    // made while the user is still on a search/home page are not captured.
+    // --- API branch: StaysPdpSections (fires on both SPA navigation and page-reload hydration) ---
+    // Primary capture: extracts all detail fields from sections JSON.
+    // Coordinates are not available here; the SSR branch supplies them via overwrite_partial.
     if (requestPath.startsWith("/api/v3/StaysPdpSections/")) {
       const tabPath = new URL(source_platform_url).pathname;
       const idMatch = tabPath.match(/^\/rooms\/(\d+)/);
@@ -119,7 +100,6 @@ zeeschuimer.register_module(
         return [];
       }
       if (!sectionsList) return [];
-      if (!_tryAcquire(id)) return [];
 
       const ex = makeExtractor(sectionsList);
       return [
@@ -146,7 +126,9 @@ zeeschuimer.register_module(
       ];
     }
 
-    // --- SSR HTML branch: full page load at /rooms/{id} ---
+    // --- SSR HTML branch: supplements the API capture with coordinates from JSON-LD ---
+    // Only fires on full page reloads. overwrite_partial ensures this record updates the
+    // API-captured one rather than creating a duplicate.
     if (!requestPath.startsWith("/rooms/")) return [];
 
     let doc;
@@ -156,7 +138,7 @@ zeeschuimer.register_module(
       return [];
     }
 
-    // JSON-LD (VacationRental schema): always present on SSR; has name, images, coords.
+    // JSON-LD provides latitude/longitude, not available from the API response.
     let jsonld = null;
     doc.querySelectorAll('script[type="application/ld+json"]').forEach((el) => {
       try {
@@ -166,7 +148,6 @@ zeeschuimer.register_module(
     });
     if (!jsonld) return [];
 
-    // Listing ID: base64("DemandStayListing:{id}") or fallback to URL.
     let id = null;
     if (jsonld.identifier) {
       try {
@@ -180,9 +161,7 @@ zeeschuimer.register_module(
       id = m ? m[1] : null;
     }
     if (!id) return [];
-    if (!_tryAcquire(id)) return [];
 
-    // niobeClientData: full StaysPdpSections GraphQL response embedded as a JSON script block.
     let sectionsList = null;
     doc.querySelectorAll("script:not([src])").forEach((el) => {
       const text = el.textContent.trim();
@@ -203,22 +182,17 @@ zeeschuimer.register_module(
 
     const ex = sectionsList ? makeExtractor(sectionsList) : null;
 
-    let description = jsonld.description || null;
-    if (ex?.description) description = ex.description;
-
-    const photos = Array.isArray(jsonld.image)
-      ? jsonld.image
-      : jsonld.image
-      ? [jsonld.image]
-      : [];
+    const photos = ex?.photos?.length > 0
+      ? ex.photos
+      : Array.isArray(jsonld.image) ? jsonld.image : jsonld.image ? [jsonld.image] : [];
 
     return [
       {
         id,
         url: source_platform_url,
-        name: jsonld.name || null,
-        description,
-        location: jsonld.address?.addressLocality || null,
+        name: ex?.name || jsonld.name || null,
+        description: ex?.description || null,
+        location: ex?.location || jsonld.address?.addressLocality || null,
         latitude: jsonld.latitude || null,
         longitude: jsonld.longitude || null,
         property_type: ex?.property_type ?? null,
@@ -236,5 +210,11 @@ zeeschuimer.register_module(
     ];
   },
   null,
-  "airbnb.ie-detail"
+  "airbnb.ie-detail",
+  // Update the stored record when the SSR branch (which has coordinates) fires after
+  // the API branch (which doesn't). Skip if the existing record already has coordinates.
+  function overwrite_partial(incoming, existing) {
+    return incoming.latitude !== null &&
+      (existing.data.latitude === null || existing.data.latitude === undefined);
+  }
 );
