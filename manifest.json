@@ -53,6 +53,7 @@
       "modules/collegecribs.js",
       "modules/collegecribs-detail.js",
       "modules/digs.js",
+      "modules/digs-detail.js",
       "modules/airbnb.js",
       "modules/hostingpower.js",
       "modules/vrbo.js"
