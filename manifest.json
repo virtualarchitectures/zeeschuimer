@@ -47,6 +47,7 @@
       "js/zs-background.js",
       "modules/daft.js",
       "modules/myhome.js",
+      "modules/myhome-detail.js",
       "modules/property.js",
       "modules/collegecribs.js",
       "modules/digs.js",

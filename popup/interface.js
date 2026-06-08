@@ -156,6 +156,9 @@ async function get_stats() {
         id: row_id,
         "data-enabled": enabled ? "1" : "0",
       });
+      if (platform.endsWith("-detail")) {
+        row.classList.add("module-detail");
+      }
 
       // checkbox stuff
       let checker = createElement("label", { for: toggle_field });
@@ -236,12 +239,14 @@ async function get_stats() {
       );
       actions.appendChild(clear_button);
       actions.appendChild(download_button);
-      actions.appendChild(csv_button);
+      if (NORMALIZERS.hasOwnProperty(platform)) {
+        actions.appendChild(csv_button);
+      }
 
       row.appendChild(actions);
       document.querySelector("#item-table tbody").appendChild(row);
 
-      if (["property.ie", "digs.ie"].includes(platform)) {
+      if (["myhome.ie-detail", "property.ie", "digs.ie"].includes(platform)) {
         const spacer = createElement("tr", { class: "module-spacer" });
         spacer.appendChild(createElement("td", { colspan: "5" }));
         document.querySelector("#item-table tbody").appendChild(spacer);
