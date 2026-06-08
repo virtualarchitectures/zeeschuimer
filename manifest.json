@@ -51,6 +51,7 @@
       "modules/property.js",
       "modules/property-detail.js",
       "modules/collegecribs.js",
+      "modules/collegecribs-detail.js",
       "modules/digs.js",
       "modules/airbnb.js",
       "modules/hostingpower.js",
