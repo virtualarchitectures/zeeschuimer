@@ -49,6 +49,7 @@
       "modules/myhome.js",
       "modules/myhome-detail.js",
       "modules/property.js",
+      "modules/property-detail.js",
       "modules/collegecribs.js",
       "modules/digs.js",
       "modules/airbnb.js",
