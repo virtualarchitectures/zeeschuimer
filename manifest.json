@@ -55,6 +55,7 @@
       "modules/digs.js",
       "modules/digs-detail.js",
       "modules/airbnb.js",
+      "modules/airbnb-detail.js",
       "modules/hostingpower.js",
       "modules/vrbo.js"
     ]
