@@ -246,7 +246,7 @@ async function get_stats() {
       row.appendChild(actions);
       document.querySelector("#item-table tbody").appendChild(row);
 
-      if (["myhome.ie-detail", "property.ie-detail", "collegecribs.ie-detail", "digs.ie-detail", "airbnb.ie-detail"].includes(platform)) {
+      if (["myhome.ie-detail", "property.ie-detail", "collegecribs.ie-detail", "digs.ie-detail", "airbnb.ie-detail", "hostingpower.ie-detail"].includes(platform)) {
         const spacer = createElement("tr", { class: "module-spacer" });
         spacer.appendChild(createElement("td", { colspan: "5" }));
         document.querySelector("#item-table tbody").appendChild(spacer);
