@@ -13,7 +13,7 @@ zeeschuimer.register_module(
     // payloads share the same tab URL, giving a stable shared key.
     let tabPath;
     try { tabPath = new URL(source_platform_url).pathname; } catch (e) { return []; }
-    const pathMatch = tabPath.match(/^\/(\d+[a-z]+)\b/);
+    const pathMatch = tabPath.match(/^\/(\d+[a-z]*)\b/) ?? tabPath.match(/^\/pdp\/lo\/(\d+)/);
     if (!pathMatch) return [];
     const listing_id = pathMatch[1];
 
