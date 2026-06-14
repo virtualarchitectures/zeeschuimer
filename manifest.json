@@ -58,7 +58,8 @@
       "modules/airbnb-detail.js",
       "modules/hostingpower.js",
       "modules/hostingpower-detail.js",
-      "modules/vrbo.js"
+      "modules/vrbo.js",
+      "modules/vrbo-detail.js"
     ]
   }
 }
